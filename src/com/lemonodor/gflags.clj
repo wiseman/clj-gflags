@@ -39,7 +39,6 @@
   (update-flag-values [this optlist]
     (doseq [[optname value-string] optlist]
       (let [name (flag-name optname)]
-        (pr "updating flag" name ((:__flags this) name))
         (swap! ((:__flags this) name) set-flag-value value-string)))
     this)
   (flag-map [this]
@@ -55,12 +54,16 @@
   ([] (flag-values *flags*)))
 
 
+(defn flag-name-to-symbol [name]
+  (keyword name))
+
+
 ;; Equivalent of gflags.py FLAGS.  FIXME: Should be able to return a
 ;; thing that acts like a map but just indexes into existing flag
 ;; values without actually creating a map, right?
 (defn flags
   ([values] (into {}
-                  (for [[name flag] (:__flags @values)] [name (:value @flag)])))
+                  (for [[name flag] (:__flags @values)] [(flag-name-to-symbol name) (:value @flag)])))
   ([] (flags *flags*)))
 
 (defrecord Flag
@@ -133,11 +136,6 @@
                               (if (:boolean flag)
                                 name
                                 (str name ":"))))
-           x (do (prn "longopts for getopt" longopts)
-                 (prn "shortopts for getopt" shortopts)
-                 (prn "args for getopt" args))
            [optlist, unparsed-args] (getopt/getopt args shortopts longopts)]
-       (prn "optlist returned by getopt" optlist)
-       (prn "unparsed args returned by getopt" unparsed-args)
        (swap! flagvalues update-flag-values optlist)
        unparsed-args)))
