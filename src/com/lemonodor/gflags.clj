@@ -5,21 +5,43 @@
    [com.lemonodor.getopt :as getopt]))
 
 
+(defn set-flag-value [flag value-string]
+  (assoc flag
+    :value ((:parser flag) value-string)
+    :present true))
+
+
 (defprotocol FlagValuesProtocol
   (register-flag [this flag ns])
+  (update-flag-values [this optlist])
   (flag-map [this]))
+
+
+
+(defn flag-name [optname]
+  (let [[_ name] (re-matches #"--?(.+)" optname)]
+    name))
 
 
 (defrecord FlagValues [__flags __flags_by_ns]
   FlagValuesProtocol
   (register-flag [this flag ns]
-    (let [flags-by-ns (:__flags_by_ns this)
-          name-entries (if (:short-name flag)
-                         {(:short-name flag) flag
-                          (:name flag) flag}
-                         {(:name flag) flag})]
+    ;; We set the flag's value to be its default here (but it's still
+    ;; not considered present).
+    (let [flag (atom (assoc flag :value (:default flag)))
+          flags-by-ns (:__flags_by_ns this)
+          name-entries (if (:short-name @flag)
+                         {(:short-name @flag) flag
+                          (:name @flag) flag}
+                         {(:name @flag) flag})]
       (->FlagValues (merge (:__flags this) name-entries)
                     (assoc flags-by-ns ns (conj (flags-by-ns ns) flag)))))
+  (update-flag-values [this optlist]
+    (doseq [[optname value-string] optlist]
+      (let [name (flag-name optname)]
+        (pr "updating flag" name ((:__flags this) name))
+        (swap! ((:__flags this) name) set-flag-value value-string)))
+    this)
   (flag-map [this]
     (:__flags this)))
 
@@ -38,7 +60,7 @@
 ;; values without actually creating a map, right?
 (defn flags
   ([values] (into {}
-                  (for [[name flag] (:__flags @values)] [name (:value flag)])))
+                  (for [[name flag] (:__flags @values)] [name (:value @flag)])))
   ([] (flags *flags*)))
 
 (defrecord Flag
@@ -63,6 +85,7 @@
 
 (defn define-flag [flagvalues flag ns]
   (swap! flagvalues register-flag flag ns))
+
 
 (defn define [parser name default help serializer & args]
   (define-flag
@@ -91,6 +114,7 @@
      :else
      (throw (Exception. (str "Non boolean argument to boolean flag: " argument))))))
 
+
 (defn define-boolean [name default help & args]
   (apply define boolean-parser name default
          (or help "a boolean value")
@@ -115,4 +139,5 @@
            [optlist, unparsed-args] (getopt/getopt args shortopts longopts)]
        (prn "optlist returned by getopt" optlist)
        (prn "unparsed args returned by getopt" unparsed-args)
+       (swap! flagvalues update-flag-values optlist)
        unparsed-args)))
