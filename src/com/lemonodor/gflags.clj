@@ -6,19 +6,40 @@
 
 
 (defprotocol FlagValuesProtocol
-  (register-flag [this flag ns]))
+  (register-flag [this flag ns])
+  (flag-map [this]))
 
 
 (defrecord FlagValues [__flags __flags_by_ns]
   FlagValuesProtocol
   (register-flag [this flag ns]
-    (let [flags-by-ns (:__flags_by_ns this)]
-      (->FlagValues (assoc (:__flags this) (:name flag) flag)
-                    (assoc flags-by-ns ns (conj (flags-by-ns ns) flag))))))
+    (let [flags-by-ns (:__flags_by_ns this)
+          name-entries (if (:short-name flag)
+                         {(:short-name flag) flag
+                          (:name flag) flag}
+                         {(:name flag) flag})]
+      (->FlagValues (merge (:__flags this) name-entries)
+                    (assoc flags-by-ns ns (conj (flags-by-ns ns) flag)))))
+  (flag-map [this]
+    (:__flags this)))
 
 
 (def ^:dynamic *flags* (atom (->FlagValues {} {})))
 
+
+(defn flag-values
+  ([values] (into {}
+                  (for [[name flag] (:__flags @values)] [name flag])))
+  ([] (flag-values *flags*)))
+
+
+;; Equivalent of gflags.py FLAGS.  FIXME: Should be able to return a
+;; thing that acts like a map but just indexes into existing flag
+;; values without actually creating a map, right?
+(defn flags
+  ([values] (into {}
+                  (for [[name flag] (:__flags @values)] [name (:value flag)])))
+  ([] (flags *flags*)))
 
 (defrecord Flag
     [name
@@ -40,8 +61,8 @@
   value)
 
 
-(defn define-flag [flag-values flag ns]
-  (swap! flag-values register-flag flag ns))
+(defn define-flag [flagvalues flag ns]
+  (swap! flagvalues register-flag flag ns))
 
 (defn define [parser name default help serializer & args]
   (define-flag
@@ -77,5 +98,21 @@
          args))
 
 
-(defn parse-flags [& whatever]
-  nil)
+(defn parse-flags
+  ([argv] (parse-flags argv *flags*))
+  ([argv flagvalues]
+     (let [args (rest argv)
+           flags (flag-map @flagvalues)
+           longopts (for [[name _] flags] (str name "="))
+           shortopts (apply str
+                            (for [[name flag] flags :when (= (count name) 1)]
+                              (if (:boolean flag)
+                                name
+                                (str name ":"))))
+           x (do (prn "longopts for getopt" longopts)
+                 (prn "shortopts for getopt" shortopts)
+                 (prn "args for getopt" args))
+           [optlist, unparsed-args] (getopt/getopt args shortopts longopts)]
+       (prn "optlist returned by getopt" optlist)
+       (prn "unparsed args returned by getopt" unparsed-args)
+       unparsed-args)))
