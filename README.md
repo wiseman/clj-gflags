@@ -1,3 +1,3 @@
 * clj-gflags
 
-Google flags/gflags for clojure
+Google flags/gflags for clojure.
