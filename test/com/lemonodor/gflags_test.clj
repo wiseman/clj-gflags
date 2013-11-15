@@ -5,13 +5,25 @@
 
 
 (deftest string-test
-  (testing "string flag"
+  (testing "string long name"
+    (binding [gflags/*flags* (gflags/make-flag-values)]
+      (gflags/define-string "filename"
+        "default-filename"
+        "The input filename")
+      (let [args ["argv0" "--filename" "foo" "arg1"]
+            unparsed-args (gflags/parse-flags args)]
+        (is (= unparsed-args ["arg1"]))
+        (let [flags (gflags/flags)]
+          (is (contains? flags :filename))
+          (is (not (contains? flags :unknown-flag)))
+          (is (= (flags :filename) "foo"))))))
+  (testing "string short name"
     (binding [gflags/*flags* (gflags/make-flag-values)]
       (gflags/define-string "filename"
         "default-filename"
         "The input filename"
         :short-name "f")
-      (let [args ["argv0" "--filename" "foo" "arg1"]
+      (let [args ["argv0" "-f" "foo" "arg1"]
             unparsed-args (gflags/parse-flags args)]
         (is (= unparsed-args ["arg1"]))
         (let [flags (gflags/flags)]
