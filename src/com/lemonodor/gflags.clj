@@ -178,3 +178,7 @@
         [optlist, unparsed-args] (getopt/getopt args shortopts longopts)]
     (swap! *flags* update-flag-values optlist)
     unparsed-args))
+
+
+(define-string "flagfile" nil
+  "Insert flag definitions from the given file into the command line.")
