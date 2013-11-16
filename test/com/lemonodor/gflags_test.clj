@@ -46,7 +46,7 @@
 
 
 (deftest boolean-test
-  (testing "boolean flag"
+  (testing "long implicit true boolean flag"
     (binding [gflags/*flags* (gflags/make-flag-values)]
       (gflags/define-boolean "enable-unicorns"
         false
@@ -58,7 +58,46 @@
         (let [flags (gflags/flags)]
           (is (contains? flags :enable-unicorns))
           (is (not (contains? flags :unknown-flag)))
-          (is (flags :enable-unicorns)))))))
+          (is (flags :enable-unicorns))))))
+  (testing "long implicit false boolean flag"
+    (binding [gflags/*flags* (gflags/make-flag-values)]
+      (gflags/define-boolean "enable-unicorns"
+        false
+        "Whether we should enable unicorns"
+        :short-name "u")
+      (let [args ["argv0" "--noenable-unicorns" "arg1"]
+            unparsed-args (gflags/parse-flags args)]
+        (is (= unparsed-args ["arg1"]))
+        (let [flags (gflags/flags)]
+          (is (contains? flags :enable-unicorns))
+          (is (not (contains? flags :unknown-flag)))
+          (is (not (flags :enable-unicorns)))))))
+  (testing "long explicit true boolean flag"
+    (binding [gflags/*flags* (gflags/make-flag-values)]
+      (gflags/define-boolean "enable-unicorns"
+        false
+        "Whether we should enable unicorns"
+        :short-name "u")
+      (let [args ["argv0" "--enable-unicorns=true" "arg1"]
+            unparsed-args (gflags/parse-flags args)]
+        (is (= unparsed-args ["arg1"]))
+        (let [flags (gflags/flags)]
+          (is (contains? flags :enable-unicorns))
+          (is (not (contains? flags :unknown-flag)))
+          (is (flags :enable-unicorns))))))
+  (testing "long explicit false boolean flag"
+    (binding [gflags/*flags* (gflags/make-flag-values)]
+      (gflags/define-boolean "enable-unicorns"
+        false
+        "Whether we should enable unicorns"
+        :short-name "u")
+      (let [args ["argv0" "--enable-unicorns=false" "arg1"]
+            unparsed-args (gflags/parse-flags args)]
+        (is (= unparsed-args ["arg1"]))
+        (let [flags (gflags/flags)]
+          (is (contains? flags :enable-unicorns))
+          (is (not (contains? flags :unknown-flag)))
+          (is (not (flags :enable-unicorns))))))))
 
 
 (deftest redefinition-test
