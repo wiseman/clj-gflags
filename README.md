@@ -4,6 +4,8 @@
 
 Google flags/gflags for clojure.
 
+[![Version](https://clojars.org/com.lemonodor/gflags/latest-version.svg)](https://clojars.org/com.lemonodor/gflags)
+
 
 ## Installation
 
