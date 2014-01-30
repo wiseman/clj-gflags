@@ -10,5 +10,5 @@ Google flags/gflags for clojure.
 ## Installation
 
 ```
-[com.lemonodor.gflags "0.2.0"]
+[com.lemonodor/gflags "0.2.0"]
 ```
