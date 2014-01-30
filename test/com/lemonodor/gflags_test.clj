@@ -99,6 +99,18 @@
           (is (contains? flags :enable-unicorns))
           (is (not (contains? flags :unknown-flag)))
           (is (not (flags :enable-unicorns)))))))
+  (testing "short implicit true boolean flag"
+    (binding [gflags/*flags* (gflags/make-flag-values)]
+      (gflags/define-boolean "enable-unicorns"
+        false
+        "Whether we should enable unicorns"
+        :short-name "u")
+      (let [args ["argv0" "-u" "arg1"]
+            unparsed-args (gflags/parse-flags args)]
+        (is (= unparsed-args ["arg1"]))
+        (let [flags (gflags/flags)]
+          (is (contains? flags :enable-unicorns))
+          (is (flags :enable-unicorns))))))
   (testing "bad boolean flag value"
     (binding [gflags/*flags* (gflags/make-flag-values)]
       (gflags/define-boolean "enable-unicorns"
@@ -107,7 +119,44 @@
         :short-name "u")
       (let [args ["argv0" "--enable-unicorns=red" "arg1"]]
         (is (thrown-with-msg?
-             Exception #"enable-unicorns.*red"
+             Exception #"enable-unicorns.*boolean.*red"
+             (gflags/parse-flags args)))))))
+
+
+(deftest integer-test
+  (testing "long valid integer flag with ="
+    (binding [gflags/*flags* (gflags/make-flag-values)]
+      (gflags/define-integer "num-unicorns"
+        0
+        "The number of unicorns."
+        :short-name "u")
+      (let [args ["argv0" "--num-unicorns=1" "arg1"]
+            unparsed-args (gflags/parse-flags args)]
+        (is (= unparsed-args ["arg1"]))
+        (let [flags (gflags/flags)]
+          (is (contains? flags :num-unicorns))
+          (is (= (flags :num-unicorns) 1))))))
+  (testing "long valid integer flag without ="
+    (binding [gflags/*flags* (gflags/make-flag-values)]
+      (gflags/define-integer "num-unicorns"
+        0
+        "The number of unicorns."
+        :short-name "u")
+      (let [args ["argv0" "--num-unicorns" "1" "arg1"]
+            unparsed-args (gflags/parse-flags args)]
+        (is (= unparsed-args ["arg1"]))
+        (let [flags (gflags/flags)]
+          (is (contains? flags :num-unicorns))
+          (is (= (flags :num-unicorns) 1))))))
+  (testing "bad integer flag value"
+    (binding [gflags/*flags* (gflags/make-flag-values)]
+      (gflags/define-integer "num-unicorns"
+        1
+        "The number of unicorns"
+        :short-name "u")
+      (let [args ["argv0" "--num-unicorns=red" "arg1"]]
+        (is (thrown-with-msg?
+             Exception #"num-unicorns.*integer.*red"
              (gflags/parse-flags args)))))))
 
 

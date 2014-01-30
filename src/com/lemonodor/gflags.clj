@@ -1,21 +1,31 @@
 (ns com.lemonodor.gflags
   "Gflags for clojure."
   (:require
+   [clojure.pprint :as pprint]
    [clojure.string :as string]
    [com.lemonodor.getopt :as getopt]))
 
 
 (defn set-flag-value [flag optname value-string]
-  (let [value
-        (try ((:parser flag) value-string)
-             (catch Exception e
-               (throw
-                (Exception.
-                 (str
-                  "Error while parsing value for flag "
-                  optname ": "
-                  (.getMessage ^Throwable e)) e))))]
-    (assoc flag :value value :present true)))
+  (let [value-string (if (and (not (.startsWith optname "--"))
+                              (:boolean flag))
+                       "1"
+                       value-string)]
+    (when (= (count value-string) 0)
+      (throw (Exception. (str "Must specify a value for flag " optname))))
+    (let [value
+          (try ((:parser flag) value-string)
+               (catch Exception e
+                 (let [message (str
+                                "Error while parsing value for flag " optname)
+                       chained-message (.getMessage ^Throwable e)]
+                   (throw
+                    (Exception.
+                     (if chained-message
+                       (str message ": " chained-message)
+                       message)
+                     e)))))]
+      (assoc flag :value value :present true))))
 
 
 (defprotocol FlagValuesProtocol
@@ -125,7 +135,9 @@
 
 
 (defn define-string [name default help & args]
-  (apply define string-parser name default help :serializer string-serializer args))
+  (apply define string-parser name default help
+         :serializer string-serializer
+         args))
 
 
 (defn boolean-parser [argument]
@@ -142,6 +154,22 @@
 (defn define-boolean [name default help & args]
   (apply define boolean-parser name default (or help "a boolean value")
          :boolean true
+         args))
+
+
+(defn integer-parser [argument]
+  (try
+    (. Integer parseInt argument)
+    (catch Exception e
+      (throw (Exception.
+              (str "Could not parse as integer: \"" argument "\""))))))
+
+(defn integer-serializer [value]
+  (str value))
+
+(defn define-integer [name default help & args]
+  (apply define integer-parser name default (or help "an integer value")
+         :serializer integer-serializer
          args))
 
 
@@ -187,7 +215,7 @@
         longopts (for [[name _] flags] (str name "="))
         shortopts (string/join
                    (for [[name flag] flags :when (= (count name) 1)]
-                     (if (:boolean flag)
+                     (if (:boolean @flag)
                        name
                        (str name ":"))))
         ;; Correct the argv to support the google style of passing
