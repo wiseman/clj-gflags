@@ -98,7 +98,17 @@
         (let [flags (gflags/flags)]
           (is (contains? flags :enable-unicorns))
           (is (not (contains? flags :unknown-flag)))
-          (is (not (flags :enable-unicorns))))))))
+          (is (not (flags :enable-unicorns)))))))
+  (testing "bad boolean flag value"
+    (binding [gflags/*flags* (gflags/make-flag-values)]
+      (gflags/define-boolean "enable-unicorns"
+        false
+        "Whether we should enable unicorns"
+        :short-name "u")
+      (let [args ["argv0" "--enable-unicorns=red" "arg1"]]
+        (is (thrown-with-msg?
+             Exception #"enable-unicorns.*red"
+             (gflags/parse-flags args)))))))
 
 
 (deftest redefinition-test

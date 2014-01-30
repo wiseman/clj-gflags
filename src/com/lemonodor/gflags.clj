@@ -5,10 +5,17 @@
    [com.lemonodor.getopt :as getopt]))
 
 
-(defn set-flag-value [flag value-string]
-  (assoc flag
-    :value ((:parser flag) value-string)
-    :present true))
+(defn set-flag-value [flag optname value-string]
+  (let [value
+        (try ((:parser flag) value-string)
+             (catch Exception e
+               (throw
+                (Exception.
+                 (str
+                  "Error while parsing value for flag "
+                  optname ": "
+                  (.getMessage ^Throwable e)) e))))]
+    (assoc flag :value value :present true)))
 
 
 (defprotocol FlagValuesProtocol
@@ -50,7 +57,7 @@
   (update-flag-values [this optlist]
     (doseq [[optname value-string] optlist]
       (let [name (optname-to-flag-name optname)]
-        (swap! ((:__flags this) name) set-flag-value value-string)))
+        (swap! ((:__flags this) name) set-flag-value optname value-string)))
     this)
   (flag-map [this]
     (:__flags this))
@@ -127,7 +134,9 @@
      (some #{argument} ["true" "t" "1"]) true
      (some #{argument} ["false" "f" "0"]) false
      :else
-     (throw (Exception. (str "Non boolean argument to boolean flag: " argument))))))
+     (throw (Exception. (str "Non-boolean argument to boolean flag: \""
+                             argument
+                             "\""))))))
 
 
 (defn define-boolean [name default help & args]
