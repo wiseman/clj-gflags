@@ -1,7 +1,8 @@
 (ns com.lemonodor.gflags-test
-  (:require [clojure.test :refer :all]
-            ;;[clojure.pprint :as pprint]
-            [com.lemonodor.gflags :as gflags]))
+  (:require
+   [clojure.java.io :as io]
+   [clojure.test :refer :all]
+   [com.lemonodor.gflags :as gflags]))
 
 
 (deftest string-test
@@ -117,3 +118,26 @@
                "default-filename"
                "The input filename"
                :short-name "f"))))))))
+
+
+;; (deftest flagfile-test
+;;   (testing "reading a flag file"
+;;     (binding [gflags/*flags* (gflags/make-flag-values)]
+;;       (gflags/define-boolean "enable-unicorns"
+;;         false
+;;         "Whether we should enable unicorns"
+;;         :short-name "u")
+;;       (gflags/define-string "filename"
+;;         "default-filename"
+;;         "The input filename")
+;;       (let [args ["argv0"
+;;                   "--flagfile"
+;;                   (str (io/file (io/resource "test.flags")))
+;;                   "arg1"]
+;;             unparsed-args (gflags/parse-flags args)]
+;;         (is (= unparsed-args ["arg1"]))
+;;         (let [flags (gflags/flags)]
+;;           (is (contains? flags :enable-unicorns))
+;;           (is (flags :enable-unicorns))
+;;           (is (contains? flags :filename))
+;;           (is (= (flags :filename) "dir/file")))))))

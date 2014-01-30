@@ -46,7 +46,7 @@
                       "\" and \"" (flag-names @conflicting-flag)) "\""
                      " defined in " (:namespace @conflicting-flag)))))
       (->FlagValues (merge (:__flags this) name-entries)
-                    (assoc flags-by-ns ns (conj (flags-by-ns ns) flag-atom)))))
+                    (update-in flags-by-ns [ns] conj flag-atom))))
   (update-flag-values [this optlist]
     (doseq [[optname value-string] optlist]
       (let [name (optname-to-flag-name optname)]
@@ -58,12 +58,7 @@
     (distinct (for [[name flag-atom] (:__flags this)] @flag-atom))))
 
 
-(defn make-flag-values []
-  (atom (->FlagValues {} {})))
-
-
-(def ^:dynamic *flags* (make-flag-values))
-
+(def ^:dynamic *flags* nil)
 
 (defn flag-values []
   (into {} (for [[name flag] (:__flags @*flags*)] [name flag])))
@@ -141,6 +136,21 @@
          args))
 
 
+(defn add-default-flags [flag-values]
+  (binding [*flags* flag-values]
+    (define-string "flagfile" nil
+      "Insert flag definitions from the given file into the command line.")))
+
+
+(defn make-flag-values []
+  (let [flag-values (atom (->FlagValues {} {}))]
+    (add-default-flags flag-values)
+    flag-values))
+
+
+(alter-var-root #'*flags* (fn [_] (make-flag-values)))
+
+
 (defn- full-replacements-for-boolean-flag [flag]
   (let [replacements (reduce into {}
                              (map #(-> [[(str "--" %) (str "--" % "=true")]
@@ -150,7 +160,7 @@
 
 
 (defn cook-boolean-args [flags args]
-  (let [boolean-flags (filter #(:boolean %) flags)
+  (let [boolean-flags (filter :boolean flags)
         replacements (reduce
                       into {} (map full-replacements-for-boolean-flag
                                    boolean-flags))
@@ -158,7 +168,11 @@
     cooked-args))
 
 
-(defn parse-flags [argv]
+(defn parse-flags
+  "Parses command line flags.  Sets *flags* to be the flag values, and
+   returns unparsed arguments.  Note that args should start with
+   argv[0]."
+  [argv]
   (let [args (rest argv)
         flags (flag-map @*flags*)
         longopts (for [[name _] flags] (str name "="))
@@ -178,7 +192,3 @@
         [optlist, unparsed-args] (getopt/getopt args shortopts longopts)]
     (swap! *flags* update-flag-values optlist)
     unparsed-args))
-
-
-(define-string "flagfile" nil
-  "Insert flag definitions from the given file into the command line.")
