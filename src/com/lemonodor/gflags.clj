@@ -8,7 +8,7 @@
    [me.raynes.fs :as fs]))
 
 
-(defn set-flag-value [flag optname value-string]
+(defn set-flag-value [flag ^String optname value-string]
   (let [value-string (if (and (not (.startsWith optname "--"))
                               (:boolean flag))
                        "1"
