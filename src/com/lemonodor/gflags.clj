@@ -11,7 +11,7 @@
                               (:boolean flag))
                        "1"
                        value-string)]
-    (when (= (count value-string) 0)
+    (when (zero? (count value-string))
       (throw (Exception. (str "Must specify a value for flag " optname))))
     (let [value
           (try ((:parser flag) value-string)
@@ -159,7 +159,7 @@
 
 (defn integer-parser [argument]
   (try
-    (. Integer parseInt argument)
+    (Integer/parseInt ^String argument)
     (catch Exception e
       (throw (Exception.
               (str "Could not parse as integer: \"" argument "\""))))))
