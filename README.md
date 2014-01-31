@@ -13,8 +13,8 @@ command-line apps that all use one common module, the common module
 can define its own command line flags, which then get used by each
 app.
 
-It may sound a little weird, but in practice it works well and it very
-convenient.
+It may sound a little weird, but in practice it works well and can be
+very convenient.
 
 In this translation of the concept to clojure, each namespace can
 define its own flags.
