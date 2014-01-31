@@ -28,7 +28,9 @@ define its own flags.
 
 
 ## Example usage
-In a library namespace:
+
+Say you have a namespace for your S3 utilities.  You can define some
+flags in that namespace for your AWS credentials etc.:
 
 ```
 (ns s3-utils
@@ -42,14 +44,17 @@ In a library namespace:
 (gflags/define-string "aws-secret-key"
   nil
   "The AWS secret key to use.")
+(gflags/define-integer "num-retries"
+  3
+  "The number of times to retry S3 operations.")
 
-(defn get-s3-file [url access-key secret-key]
-  (let [access-key (or access-key (:aws-access-key (gflags/flags)))
-        secret-key (or secret-key (:aws-secret-key (gflags/flags)))]
+(defn get-s3-file [url & {:keys [access-key secret-key num-retries]}]
+  (let [access-key (or access-key (gflags/flags :aws-access-key))
+        secret-key (or secret-key (gflags/flags :aws-secret-key))]
     ...))
 ```
 
-In a namespace containing `main`:
+Then in your CLI app namespace, you just need to call `parse-flags`:
 ```
 (ns main-app
   "Command-line app"
