@@ -252,7 +252,7 @@
   (loop [parsed-file-list []
          rest-of-args args
          new-argv []]
-    (if (not (seq rest-of-args))
+    (if-not (seq rest-of-args)
       new-argv
       (let [current-arg (first rest-of-args)
             rest-of-args (rest rest-of-args)]
@@ -262,7 +262,7 @@
                         (= current-arg "-flagfile"))
                   ;; This handles the case of -(-)flagfile foo.  In this
                   ;; case the next arg really is part of this one.
-                  (if (not (seq rest-of-args))
+                  (if-not (seq rest-of-args)
                     (throw (Exception. "--flagfile with no argument"))
                     [(fs/expand-home (first rest-of-args)) (rest rest-of-args)])
                   ;; This handles the case of (-)-flagfile=foo
