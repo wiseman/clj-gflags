@@ -31,7 +31,7 @@
           (is (contains? flags :filename))
           (is (not (contains? flags :unknown-flag)))
           (is (= (flags :filename) "foo"))))))
-  (testing "string flag default value"
+  (testing "string default value"
     (binding [gflags/*flags* (gflags/make-flag-values)]
       (gflags/define-string "filename"
         "default-filename"
@@ -43,11 +43,29 @@
         (let [flags (gflags/flags)]
           (is (contains? flags :filename))
           (is (not (contains? flags :unknown-flag)))
-          (is (= (flags :filename) "default-filename")))))))
+          (is (= (flags :filename) "default-filename"))))))
+  (testing "string long name, no value"
+    (binding [gflags/*flags* (gflags/make-flag-values)]
+      (gflags/define-string "filename"
+        "default-filename"
+        "The input filename"
+        :short-name "f")
+      (is (thrown-with-msg?
+           Exception #"--filename.*requires an argument"
+           (gflags/parse-flags ["argv0" "--filename"])))))
+  (testing "string short name, no value"
+    (binding [gflags/*flags* (gflags/make-flag-values)]
+      (gflags/define-string "filename"
+        "default-filename"
+        "The input filename"
+        :short-name "f")
+      (is (thrown-with-msg?
+           Exception #"-f.*requires argument"
+           (gflags/parse-flags ["argv0" "-f"]))))))
 
 
 (deftest boolean-test
-  (testing "long implicit true boolean flag"
+  (testing "boolean, long name, implicit true"
     (binding [gflags/*flags* (gflags/make-flag-values)]
       (gflags/define-boolean "enable-unicorns"
         false
@@ -60,7 +78,7 @@
           (is (contains? flags :enable-unicorns))
           (is (not (contains? flags :unknown-flag)))
           (is (flags :enable-unicorns))))))
-  (testing "long implicit false boolean flag"
+  (testing "boolean, long name, implicit false"
     (binding [gflags/*flags* (gflags/make-flag-values)]
       (gflags/define-boolean "enable-unicorns"
         false
@@ -73,7 +91,7 @@
           (is (contains? flags :enable-unicorns))
           (is (not (contains? flags :unknown-flag)))
           (is (not (flags :enable-unicorns)))))))
-  (testing "long explicit true boolean flag"
+  (testing "boolean, long name, explicit true"
     (binding [gflags/*flags* (gflags/make-flag-values)]
       (gflags/define-boolean "enable-unicorns"
         false
@@ -86,7 +104,7 @@
           (is (contains? flags :enable-unicorns))
           (is (not (contains? flags :unknown-flag)))
           (is (flags :enable-unicorns))))))
-  (testing "long explicit false boolean flag"
+  (testing "boolean, long name, explicit false"
     (binding [gflags/*flags* (gflags/make-flag-values)]
       (gflags/define-boolean "enable-unicorns"
         false
@@ -99,7 +117,7 @@
           (is (contains? flags :enable-unicorns))
           (is (not (contains? flags :unknown-flag)))
           (is (not (flags :enable-unicorns)))))))
-  (testing "short implicit true boolean flag"
+  (testing "boolean, short name, implicit true"
     (binding [gflags/*flags* (gflags/make-flag-values)]
       (gflags/define-boolean "enable-unicorns"
         false
@@ -111,7 +129,7 @@
         (let [flags (gflags/flags)]
           (is (contains? flags :enable-unicorns))
           (is (flags :enable-unicorns))))))
-  (testing "bad boolean flag value"
+  (testing "boolean, long name, explicit illegal value"
     (binding [gflags/*flags* (gflags/make-flag-values)]
       (gflags/define-boolean "enable-unicorns"
         false
@@ -124,7 +142,7 @@
 
 
 (deftest integer-test
-  (testing "long valid integer flag with ="
+  (testing "integer, long name, ="
     (binding [gflags/*flags* (gflags/make-flag-values)]
       (gflags/define-integer "num-unicorns"
         0
@@ -136,7 +154,7 @@
         (let [flags (gflags/flags)]
           (is (contains? flags :num-unicorns))
           (is (= (flags :num-unicorns) 1))))))
-  (testing "long valid integer flag without ="
+  (testing "integer, long name, without ="
     (binding [gflags/*flags* (gflags/make-flag-values)]
       (gflags/define-integer "num-unicorns"
         0
@@ -148,7 +166,19 @@
         (let [flags (gflags/flags)]
           (is (contains? flags :num-unicorns))
           (is (= (flags :num-unicorns) 1))))))
-  (testing "bad integer flag value"
+  (testing "integer, short name"
+    (binding [gflags/*flags* (gflags/make-flag-values)]
+      (gflags/define-integer "num-unicorns"
+        0
+        "The number of unicorns."
+        :short-name "u")
+      (let [args ["argv0" "-u" "1" "arg1"]
+            unparsed-args (gflags/parse-flags args)]
+        (is (= unparsed-args ["arg1"]))
+        (let [flags (gflags/flags)]
+          (is (contains? flags :num-unicorns))
+          (is (= (flags :num-unicorns) 1))))))
+  (testing "integer, long name, bad value"
     (binding [gflags/*flags* (gflags/make-flag-values)]
       (gflags/define-integer "num-unicorns"
         1
@@ -156,7 +186,76 @@
         :short-name "u")
       (let [args ["argv0" "--num-unicorns=red" "arg1"]]
         (is (thrown-with-msg?
-             Exception #"num-unicorns.*integer.*red"
+             Exception #"--num-unicorns.*integer.*red"
+             (gflags/parse-flags args))))))
+  (testing "integer, long name, no value"
+    (binding [gflags/*flags* (gflags/make-flag-values)]
+      (gflags/define-integer "num-unicorns"
+        1
+        "The number of unicorns"
+        :short-name "u")
+      (let [args ["argv0" "--num-unicorns"]]
+        (is (thrown-with-msg?
+             Exception #"--num-unicorns.*requires an argument"
+             (gflags/parse-flags args)))))))
+
+
+(deftest float-test
+  (testing "float, long name, ="
+    (binding [gflags/*flags* (gflags/make-flag-values)]
+      (gflags/define-float "fraction"
+        0
+        "The fraction to use."
+        :short-name "f")
+      (let [args ["argv0" "--fraction=1.5" "arg1"]
+            unparsed-args (gflags/parse-flags args)]
+        (is (= unparsed-args ["arg1"]))
+        (let [flags (gflags/flags)]
+          (is (contains? flags :fraction))
+          (is (= (flags :fraction) 1.5))))))
+  (testing "float, long name, without ="
+    (binding [gflags/*flags* (gflags/make-flag-values)]
+      (gflags/define-float "fraction"
+        0
+        "The fraction to use."
+        :short-name "f")
+      (let [args ["argv0" "--fraction" "1.5" "arg1"]
+            unparsed-args (gflags/parse-flags args)]
+        (is (= unparsed-args ["arg1"]))
+        (let [flags (gflags/flags)]
+          (is (contains? flags :fraction))
+          (is (= (flags :fraction) 1.5))))))
+  (testing "float, short name"
+    (binding [gflags/*flags* (gflags/make-flag-values)]
+      (gflags/define-float "fraction"
+        0
+        "The fraction to use."
+        :short-name "f")
+      (let [args ["argv0" "-f" "1.5" "arg1"]
+            unparsed-args (gflags/parse-flags args)]
+        (is (= unparsed-args ["arg1"]))
+        (let [flags (gflags/flags)]
+          (is (contains? flags :fraction))
+          (is (= (flags :fraction) 1.5))))))
+  (testing "float, long name, bad value"
+    (binding [gflags/*flags* (gflags/make-flag-values)]
+      (gflags/define-float "fraction"
+        1
+        "The fraction to use"
+        :short-name "f")
+      (let [args ["argv0" "--fraction=red" "arg1"]]
+        (is (thrown-with-msg?
+             Exception #"--fraction.*float.*red"
+             (gflags/parse-flags args))))))
+  (testing "float, long name, no value"
+    (binding [gflags/*flags* (gflags/make-flag-values)]
+      (gflags/define-float "fraction"
+        1
+        "The fraction to use"
+        :short-name "f")
+      (let [args ["argv0" "--fraction"]]
+        (is (thrown-with-msg?
+             Exception #"--fraction.*requires an argument"
              (gflags/parse-flags args)))))))
 
 

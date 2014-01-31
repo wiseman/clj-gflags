@@ -173,6 +173,22 @@
          args))
 
 
+(defn float-parser [argument]
+  (try
+    (Double/parseDouble ^String argument)
+    (catch Exception e
+      (throw (Exception.
+              (str "Could not parse as float: \"" argument "\""))))))
+
+(defn float-serializer [value]
+  (str value))
+
+(defn define-float [name default help & args]
+  (apply define float-parser name default (or help "a float value")
+         :serializer float-serializer
+         args))
+
+
 (defn add-default-flags [flag-values]
   (binding [*flags* flag-values]
     (define-string "flagfile" nil
