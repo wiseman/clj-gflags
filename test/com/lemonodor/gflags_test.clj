@@ -5,6 +5,29 @@
    [com.lemonodor.gflags :as gflags]))
 
 
+(deftest flags-test
+  (testing "flags with no arguments"
+    (binding [gflags/*flags* (gflags/make-flag-values)]
+      (gflags/define-string "filename"
+        "default-filename"
+        "The input filename")
+      (let [args ["argv0" "--filename" "foo" "arg1"]
+            unparsed-args (gflags/parse-flags args)]
+        (is (= unparsed-args ["arg1"]))
+        (let [flags (gflags/flags)]
+          (is (map? flags))
+          (is (contains? flags :filename))))))
+  (testing "flags with an argument"
+    (binding [gflags/*flags* (gflags/make-flag-values)]
+      (gflags/define-string "filename"
+        "default-filename"
+        "The input filename")
+      (let [args ["argv0" "--filename" "foo" "arg1"]
+            unparsed-args (gflags/parse-flags args)]
+        (is (= unparsed-args ["arg1"]))
+        (is (= (gflags/flags :filename) "foo"))))))
+
+
 (deftest string-test
   (testing "string long name"
     (binding [gflags/*flags* (gflags/make-flag-values)]
@@ -278,24 +301,36 @@
                :short-name "f"))))))))
 
 
-;; (deftest flagfile-test
-;;   (testing "reading a flag file"
-;;     (binding [gflags/*flags* (gflags/make-flag-values)]
-;;       (gflags/define-boolean "enable-unicorns"
-;;         false
-;;         "Whether we should enable unicorns"
-;;         :short-name "u")
-;;       (gflags/define-string "filename"
-;;         "default-filename"
-;;         "The input filename")
-;;       (let [args ["argv0"
-;;                   "--flagfile"
-;;                   (str (io/file (io/resource "test.flags")))
-;;                   "arg1"]
-;;             unparsed-args (gflags/parse-flags args)]
-;;         (is (= unparsed-args ["arg1"]))
-;;         (let [flags (gflags/flags)]
-;;           (is (contains? flags :enable-unicorns))
-;;           (is (flags :enable-unicorns))
-;;           (is (contains? flags :filename))
-;;           (is (= (flags :filename) "dir/file")))))))
+(deftest flagfile-test
+  (testing "reading a flag file"
+    (binding [gflags/*flags* (gflags/make-flag-values)]
+      (gflags/define-boolean "enable-unicorns"
+        false
+        "Whether we should enable unicorns"
+        :short-name "u")
+      (gflags/define-boolean "enable-dragons"
+        false
+        "Whether we should enable dragons"
+        :short-name "d")
+      (gflags/define-integer "num-cats"
+        2
+        "The number of cats to pet"
+        :short-name "c")
+      (gflags/define-string "best-cat-name"
+        "mr. shrimp"
+        "The best cat name"
+        :short-name "b")
+      (gflags/define-float "dog-years-multiplier"
+        7
+        "person years per dog year")
+      (let [args ["argv0"
+                  "--flagfile"
+                  (str (io/file (io/resource "test.flags")))
+                  "arg1"]
+            unparsed-args (gflags/parse-flags args)]
+        (is (= unparsed-args ["arg1"]))
+        (is (gflags/flags :enable-unicorns))
+        (is (gflags/flags :enable-dragons))
+        (is (= (gflags/flags :num-cats) 10))
+        (is (= (gflags/flags :best-cat-name) "petunia"))
+        (is (= (gflags/flags :dog-years-multiplier) 6.9))))))

@@ -1,9 +1,11 @@
 (ns com.lemonodor.gflags
   "Gflags for clojure."
   (:require
+   [clojure.java.io :as io]
    [clojure.pprint :as pprint]
    [clojure.string :as string]
-   [com.lemonodor.getopt :as getopt]))
+   [com.lemonodor.getopt :as getopt]
+   [me.raynes.fs :as fs]))
 
 
 (defn set-flag-value [flag optname value-string]
@@ -88,11 +90,14 @@
 ;; Equivalent of gflags.py FLAGS.  FIXME: Should be able to return a
 ;; thing that acts like a map but just indexes into existing flag
 ;; values without actually creating a map, right?
-(defn flags []
-  (into
-   {}
-   (for [[name flag] (:__flags @*flags*)]
-     [(flag-name-to-symbol name) (:value @flag)])))
+(defn flags
+  ([]
+     (into
+      {}
+      (for [[name flag] (:__flags @*flags*)]
+        [(flag-name-to-symbol name) (:value @flag)])))
+  ([flag-name]
+     ((flags) flag-name)))
 
 
 (defrecord Flag
@@ -221,12 +226,64 @@
     cooked-args))
 
 
+(defn is-flag-file-directive? [^String arg]
+  (or (= arg "--flagfile")
+      (= arg "-flagfile")
+      (.startsWith arg "--flagfile=")
+      (.startsWith arg "-flagfile=")))
+
+
+(defn extract-filename [^String flagfile-str]
+  (cond
+   (.startsWith flagfile-str "--flagfile=")
+   (fs/expand-home (string/trim (subs flagfile-str (count "--flagfile="))))
+   (.startsWith flagfile-str "-flagfile=")
+   (fs/expand-home (string/trim (subs flagfile-str (count "-flagfile="))))
+   :else
+   (throw (Exception. "Hit illegal --flagfile type: " (str flagfile-str)))))
+
+
+(defn get-flag-file-lines [path parsed-file-list]
+  [(line-seq (io/reader path))
+   (conj parsed-file-list path)])
+
+
+(defn read-flags-from-files [args]
+  (loop [parsed-file-list []
+         rest-of-args args
+         new-argv []]
+    (if (not (seq rest-of-args))
+      new-argv
+      (let [current-arg (first rest-of-args)
+            rest-of-args (rest rest-of-args)]
+        (if (is-flag-file-directive? current-arg)
+          (let [[flag-filename rest-of-args]
+                (if (or (= current-arg "--flagfile")
+                        (= current-arg "-flagfile"))
+                  ;; This handles the case of -(-)flagfile foo.  In this
+                  ;; case the next arg really is part of this one.
+                  (if (not (seq rest-of-args))
+                    (throw (Exception. "--flagfile with no argument"))
+                    [(fs/expand-home (first rest-of-args)) (rest rest-of-args)])
+                  ;; This handles the case of (-)-flagfile=foo
+                  [(extract-filename current-arg) rest-of-args])
+                [file-argv parsed-file-list]
+                (get-flag-file-lines flag-filename parsed-file-list)]
+            (recur parsed-file-list
+                   rest-of-args
+                   (concat new-argv file-argv)))
+          (recur parsed-file-list
+                 rest-of-args
+                 (conj new-argv current-arg)))))))
+
+
+
 (defn parse-flags
   "Parses command line flags.  Sets *flags* to be the flag values, and
    returns unparsed arguments.  Note that args should start with
    argv[0]."
   [argv]
-  (let [args (rest argv)
+  (let [args (read-flags-from-files (rest argv))
         flags (flag-map @*flags*)
         longopts (for [[name _] flags] (str name "="))
         shortopts (string/join
