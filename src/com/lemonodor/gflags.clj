@@ -16,7 +16,7 @@
     (when (zero? (count value-string))
       (throw (Exception. (str "Must specify a value for flag " optname))))
     (let [value
-          (try ((:parser flag) value-string)
+          (try ((:parser flag) flag value-string)
                (catch Exception e
                  (let [message (str
                                 "Error while parsing value for flag " optname)
@@ -114,7 +114,7 @@
      allow-override])
 
 
-(defn string-parser [argument]
+(defn string-parser [flag argument]
   argument)
 
 (defn string-serializer [value]
@@ -145,7 +145,7 @@
          args))
 
 
-(defn boolean-parser [argument]
+(defn boolean-parser [flag argument]
   (let [argument (string/lower-case argument)]
     (cond
      (some #{argument} ["true" "t" "1"]) true
@@ -162,7 +162,7 @@
          args))
 
 
-(defn integer-parser [argument]
+(defn integer-parser [flag argument]
   (try
     (Integer/parseInt ^String argument)
     (catch Exception e
@@ -178,7 +178,7 @@
          args))
 
 
-(defn float-parser [argument]
+(defn float-parser [flag argument]
   (try
     (Double/parseDouble ^String argument)
     (catch Exception e
@@ -191,6 +191,25 @@
 (defn define-float [name default help & args]
   (apply define float-parser name default (or help "a float value")
          :serializer float-serializer
+         args))
+
+
+(defn enum-parser [flag argument]
+  (if (some #{argument} (:enum-values flag))
+    argument
+    (throw (Exception. (str "Value should be one of "
+                            (string/join "|" (:enum-values flag)))))))
+
+(defn enum-serializer [value]
+  (str value))
+
+(defn define-enum [name default help & args]
+  nil)
+
+(defn define-enum[name default enum-values help & args]
+  (apply define enum-parser name default  (or help "an enum value")
+         :serializer enum-serializer
+         :enum-values enum-values
          args))
 
 

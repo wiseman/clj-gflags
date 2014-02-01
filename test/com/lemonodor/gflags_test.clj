@@ -282,6 +282,31 @@
              (gflags/parse-flags args)))))))
 
 
+(deftest enum-test
+  (testing "enum, long name, ="
+    (binding [gflags/*flags* (gflags/make-flag-values)]
+      (gflags/define-enum "size"
+        "small"
+        ["small" "medium" "large"]
+        "The fraction to use."
+        :short-name "s")
+      (let [args ["argv0" "--size=medium" "arg1"]
+            unparsed-args (gflags/parse-flags args)]
+        (is (= unparsed-args ["arg1"]))
+        (is (= (gflags/flags :size) "medium")))))
+  (testing "enum, illegal value"
+    (binding [gflags/*flags* (gflags/make-flag-values)]
+      (gflags/define-enum "size"
+        "small"
+        ["small" "medium" "large"]
+        "The fraction to use."
+        :short-name "s")
+      (let [args ["argv0" "--size=xlarge" "arg1"]]
+        (is (thrown-with-msg?
+             Exception #"--size.*Value should be one of"
+             (gflags/parse-flags args)))))))
+
+
 (deftest redefinition-test
   (testing "colliding definitions throw errors"
     (let [ns1 (create-ns 'com.lemonodor.gflags-test.ns1)
