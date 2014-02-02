@@ -139,7 +139,9 @@
     *ns*))
 
 
-(defn define-string [name default help & args]
+(defn define-string
+  "Registers a flag whose value can be any string."
+  [name default help & args]
   (apply define string-parser name default help
          :serializer string-serializer
          args))
@@ -173,6 +175,7 @@
   (str value))
 
 (defn define-integer [name default help & args]
+  "Registers a flag whose value must be an integer."
   (apply define integer-parser name default (or help "an integer value")
          :serializer integer-serializer
          args))
@@ -188,7 +191,9 @@
 (defn float-serializer [value]
   (str value))
 
-(defn define-float [name default help & args]
+(defn define-float
+  "Registers a flag whose value must be a float."
+  [name default help & args]
   (apply define float-parser name default (or help "a float value")
          :serializer float-serializer
          args))
@@ -203,7 +208,9 @@
 (defn enum-serializer [value]
   (str value))
 
-(defn define-enum [name default enum-values help & args]
+(defn define-enum
+  "Registers a flag whose value can be any string from enum_values."
+  [name default enum-values help & args]
   (apply define enum-parser name default  (or help "an enum value")
          :serializer enum-serializer
          :enum-values enum-values
@@ -220,21 +227,42 @@
       (conj values new-value))))
 
 
-(defn define-multi-string [name default help & args]
+(defn define-multi-string
+  "Registers a flag whose value can be a list of any strings.
+
+  Use the flag on the command line multiple times to place multiple
+  string values into the list.  The 'default' may be a single string
+  (which will be converted into a single-element vector) or a vector of
+  strings."
+  [name default help & args]
   (apply define (make-multi-parser string-parser)
          name default help
          :serializer string-serializer
          args))
 
 
-(defn define-multi-integer [name default help & args]
+(defn define-multi-integer
+  "Registers a flag whose value can be a list of arbitrary integers.
+
+  Use the flag on the command line multiple times to place multiple
+  integer values into the list.  The 'default' may be a single integer
+  (which will be converted into a single-element vector) or a vector of
+  integers."
+ [name default help & args]
   (apply define (make-multi-parser integer-parser)
          name default help
          :serializer integer-serializer
          args))
 
 
-(defn define-multi-float [name default help & args]
+(defn define-multi-float
+  "Registers a flag whose value can be a list of arbitrary floats.
+
+  Use the flag on the command line multiple times to place multiple
+  float values into the list.  The 'default' may be a single float
+  (which will be converted into a single-element vector) or a vector
+  of floats."
+  [name default help & args]
   (apply define
          (make-multi-parser float-parser)
          name default help
