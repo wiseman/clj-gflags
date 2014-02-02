@@ -203,13 +203,42 @@
 (defn enum-serializer [value]
   (str value))
 
-(defn define-enum [name default help & args]
-  nil)
-
-(defn define-enum[name default enum-values help & args]
+(defn define-enum [name default enum-values help & args]
   (apply define enum-parser name default  (or help "an enum value")
          :serializer enum-serializer
          :enum-values enum-values
+         args))
+
+
+(defn make-multi-parser [parser]
+  (fn [flag value-string]
+    (let [current-value (:value flag)
+          values (if (vector? current-value)
+                   current-value
+                   (vector current-value))
+          new-value (parser flag value-string)]
+      (conj values new-value))))
+
+
+(defn define-multi-string [name default help & args]
+  (apply define (make-multi-parser string-parser)
+         name default help
+         :serializer string-serializer
+         args))
+
+
+(defn define-multi-integer [name default help & args]
+  (apply define (make-multi-parser integer-parser)
+         name default help
+         :serializer integer-serializer
+         args))
+
+
+(defn define-multi-float [name default help & args]
+  (apply define
+         (make-multi-parser float-parser)
+         name default help
+         :serializer float-serializer
          args))
 
 

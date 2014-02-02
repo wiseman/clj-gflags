@@ -307,6 +307,69 @@
              (gflags/parse-flags args)))))))
 
 
+(deftest multi-string-test
+  (testing "multi-string, long name, one value"
+    (binding [gflags/*flags* (gflags/make-flag-values)]
+      (gflags/define-multi-string "file"
+        []
+        "Files to open")
+      (let [args ["argv0" "--file=file1" "arg1"]
+            unparsed-args (gflags/parse-flags args)]
+        (is (= unparsed-args ["arg1"]))
+        (is (= (gflags/flags :file) ["file1"])))))
+  (testing "multi-string, long name, two values"
+    (binding [gflags/*flags* (gflags/make-flag-values)]
+      (gflags/define-multi-string "file"
+        []
+        "Files to open")
+      (let [args ["argv0" "--file=file1" "--file" "file2" "arg1"]
+            unparsed-args (gflags/parse-flags args)]
+        (is (= unparsed-args ["arg1"]))
+        (is (= (gflags/flags :file) ["file1" "file2"]))))))
+
+
+(deftest multi-integer-test
+  (testing "multi-integer, long name, one value"
+    (binding [gflags/*flags* (gflags/make-flag-values)]
+      (gflags/define-multi-integer "num"
+        []
+        "numbers")
+      (let [args ["argv0" "--num=5" "arg1"]
+            unparsed-args (gflags/parse-flags args)]
+        (is (= unparsed-args ["arg1"]))
+        (is (= (gflags/flags :num) [5])))))
+  (testing "multi-integer, long name, two values"
+    (binding [gflags/*flags* (gflags/make-flag-values)]
+      (gflags/define-multi-integer "num"
+        []
+        "numbers")
+      (let [args ["argv0" "--num=5" "--num" "9" "arg1"]
+            unparsed-args (gflags/parse-flags args)]
+        (is (= unparsed-args ["arg1"]))
+        (is (= (gflags/flags :num) [5 9]))))))
+
+
+(deftest multi-float-test
+  (testing "multi-float, long name, one value"
+    (binding [gflags/*flags* (gflags/make-flag-values)]
+      (gflags/define-multi-float "ratio"
+        []
+        "ratios")
+      (let [args ["argv0" "--ratio=5.3" "arg1"]
+            unparsed-args (gflags/parse-flags args)]
+        (is (= unparsed-args ["arg1"]))
+        (is (= (gflags/flags :ratio) [5.3])))))
+  (testing "multi-float, long name, two values"
+    (binding [gflags/*flags* (gflags/make-flag-values)]
+      (gflags/define-multi-float "ratio"
+        []
+        "ratios")
+      (let [args ["argv0" "--ratio=5.3" "--ratio" "9.1" "arg1"]
+            unparsed-args (gflags/parse-flags args)]
+        (is (= unparsed-args ["arg1"]))
+        (is (= (gflags/flags :ratio) [5.3 9.1]))))))
+
+
 (deftest redefinition-test
   (testing "colliding definitions throw errors"
     (let [ns1 (create-ns 'com.lemonodor.gflags-test.ns1)
