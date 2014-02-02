@@ -110,15 +110,7 @@
      present
      namespace
      parser
-     serializer
      allow-override])
-
-
-(defn string-parser [flag argument]
-  argument)
-
-(defn string-serializer [value]
-  value)
 
 
 (defn define-flag [flag ns]
@@ -139,11 +131,13 @@
     *ns*))
 
 
+(defn string-parser [flag argument]
+  argument)
+
 (defn define-string
   "Registers a flag whose value can be any string."
   [name default help & args]
   (apply define string-parser name default help
-         :serializer string-serializer
          args))
 
 
@@ -171,13 +165,9 @@
       (throw (Exception.
               (str "Could not parse as integer: \"" argument "\""))))))
 
-(defn integer-serializer [value]
-  (str value))
-
 (defn define-integer [name default help & args]
   "Registers a flag whose value must be an integer."
   (apply define integer-parser name default (or help "an integer value")
-         :serializer integer-serializer
          args))
 
 
@@ -188,14 +178,10 @@
       (throw (Exception.
               (str "Could not parse as float: \"" argument "\""))))))
 
-(defn float-serializer [value]
-  (str value))
-
 (defn define-float
   "Registers a flag whose value must be a float."
   [name default help & args]
   (apply define float-parser name default (or help "a float value")
-         :serializer float-serializer
          args))
 
 
@@ -205,14 +191,10 @@
     (throw (Exception. (str "Value should be one of "
                             (string/join "|" (:enum-values flag)))))))
 
-(defn enum-serializer [value]
-  (str value))
-
 (defn define-enum
   "Registers a flag whose value can be any string from enum_values."
   [name default enum-values help & args]
   (apply define enum-parser name default  (or help "an enum value")
-         :serializer enum-serializer
          :enum-values enum-values
          args))
 
@@ -237,7 +219,6 @@
   [name default help & args]
   (apply define (make-multi-parser string-parser)
          name default help
-         :serializer string-serializer
          args))
 
 
@@ -251,7 +232,6 @@
  [name default help & args]
   (apply define (make-multi-parser integer-parser)
          name default help
-         :serializer integer-serializer
          args))
 
 
@@ -266,7 +246,6 @@
   (apply define
          (make-multi-parser float-parser)
          name default help
-         :serializer float-serializer
          args))
 
 
@@ -351,7 +330,6 @@
           (recur parsed-file-list
                  rest-of-args
                  (conj new-argv current-arg)))))))
-
 
 
 (defn parse-flags
