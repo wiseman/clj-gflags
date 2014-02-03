@@ -394,31 +394,41 @@
     (binding [gflags/*flags* (gflags/make-flag-values)]
       (gflags/define-boolean "enable-unicorns"
         false
-        "Whether we should enable unicorns"
-        :short-name "u")
+        "Whether we should enable unicorns")
       (gflags/define-boolean "enable-dragons"
         false
-        "Whether we should enable dragons"
-        :short-name "d")
+        "Whether we should enable dragons")
       (gflags/define-integer "num-cats"
         2
-        "The number of cats to pet"
-        :short-name "c")
+        "The number of cats to pet")
       (gflags/define-string "best-cat-name"
         "mr. shrimp"
-        "The best cat name"
-        :short-name "b")
+        "The best cat name")
       (gflags/define-float "dog-years-multiplier"
         7
         "person years per dog year")
+      (gflags/define-string "foo"
+        nil
+        "Just a foo flag.")
       (let [args ["argv0"
                   "--flagfile"
                   (str (io/file (io/resource "test.flags")))
                   "arg1"]
             unparsed-args (gflags/parse-flags args)]
         (is (= unparsed-args ["arg1"]))
+        (is (= (set (keys (gflags/flags)))
+               #{
+                 :best-cat-name
+                 :dog-years-multiplier
+                 :enable-dragons
+                 :enable-unicorns
+                 :flagfile
+                 :foo
+                 :num-cats
+                 }))
+        (is (= (gflags/flags :best-cat-name) "shrimp"))
+        (is (= (gflags/flags :dog-years-multiplier) 6.9))
         (is (gflags/flags :enable-unicorns))
         (is (gflags/flags :enable-dragons))
-        (is (= (gflags/flags :num-cats) 10))
-        (is (= (gflags/flags :best-cat-name) "petunia"))
-        (is (= (gflags/flags :dog-years-multiplier) 6.9))))))
+        (is (= (gflags/flags :foo) "bar"))
+        (is (= (gflags/flags :num-cats) 8))))))

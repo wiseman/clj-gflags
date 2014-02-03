@@ -1,5 +1,9 @@
+// Flags test file.
+# This is a test.
+
 --enable-unicorns
 --enable-dragons=true
 --num-cats=10
+--flagfile=dev-resources/include.flags
 --best-cat-name=petunia
 --dog-years-multiplier=6.9

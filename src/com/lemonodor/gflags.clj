@@ -299,8 +299,28 @@
 
 
 (defn get-flag-file-lines [path parsed-file-list]
-  [(line-seq (io/reader path))
-   (conj parsed-file-list path)])
+  (loop [file-lines (line-seq (io/reader path))
+         lines []
+         parsed-file-list (conj parsed-file-list path)]
+    (if-not (seq file-lines)
+      [lines parsed-file-list]
+      (let [line ^String (string/trim (first file-lines))
+            rest-lines (rest file-lines)]
+        (cond
+         (or (string/blank? line)
+             (.startsWith line "#")
+             (.startsWith line "//"))
+         (recur rest-lines lines parsed-file-list)
+         (is-flag-file-directive? line)
+         (let [sub-filename (extract-filename line)
+               [included-flags parsed-file-list]
+               (get-flag-file-lines sub-filename parsed-file-list)]
+           (recur rest-lines
+                  (concat lines included-flags)
+                  parsed-file-list))
+         :else
+         (recur rest-lines
+                (conj lines line) parsed-file-list))))))
 
 
 (defn read-flags-from-files [args]
