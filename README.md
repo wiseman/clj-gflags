@@ -54,7 +54,7 @@ flags in that namespace for your AWS credentials etc.:
     ...))
 ```
 
-Then in your CLI app namespace, you just need to call `parse-flags`:
+Then in a CLI app namespace, you just need to call `parse-flags`:
 ```
 (ns main-app
   "Command-line app"
@@ -65,3 +65,23 @@ Then in your CLI app namespace, you just need to call `parse-flags`:
   (let [unparsed-args (gflags/parse-flags (into ["argv0"] args))]
     ...))
 ```
+
+## Status
+
+This code is under development (but can definitely be useful in its
+current state).
+
+### Supported
+
+* Long names, short names.
+* Flags of the following types: string, integer, float, boolean, enum, multi-string, multi-integer, multi-float.
+* `--flagfile`
+* Errors if a flag with the same name is registered in two different namespaces.
+
+
+## Not yet
+
+* `--help`, `--helpshort`, `--helpxml`, `--undefok`.
+* Flag serialization.
+* Flag validators.
+* Flags of the following types: list, spaceseplist.
