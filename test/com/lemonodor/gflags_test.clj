@@ -374,19 +374,31 @@
   (testing "colliding definitions throw errors"
     (let [ns1 (create-ns 'com.lemonodor.gflags-test.ns1)
           ns2 (create-ns 'com.lemonodor.gflags-test.ns2)]
-    (binding [gflags/*flags* (gflags/make-flag-values)]
-      (binding [*ns* ns1]
-        (gflags/define-string "filename"
-          "default-filename"
-          "The input filename"
-          :short-name "f"))
-      (is (thrown-with-msg?
-           Exception #"flag.*conflicts"
-           (binding [*ns* ns2]
-             (gflags/define-string "filename"
-               "default-filename"
-               "The input filename"
-               :short-name "f"))))))))
+      (binding [gflags/*flags* (gflags/make-flag-values)]
+        (binding [*ns* ns1]
+          (gflags/define-string "filename"
+            "default-filename"
+            "The input filename"
+            :short-name "f"))
+        (is (thrown-with-msg?
+             Exception #"flag.*conflicts"
+             (binding [*ns* ns2]
+               (gflags/define-string "filename"
+                 "default-filename"
+                 "The input filename"
+                 :short-name "f"))))))))
+
+
+(testing "re-defining the same flag in the same namespace is OK"
+    (let [ns3 (create-ns 'com.lemonodor.gflags-test.ns3)]
+      (binding [gflags/*flags* (gflags/make-flag-values)]
+        (binding [*ns* ns3]
+          (gflags/define-string "filename"
+            "default-filename"
+            "The input filename")
+          (gflags/define-string "filename"
+            "default-filename"
+            "The input filename")))))
 
 
 (deftest flagfile-test

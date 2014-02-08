@@ -56,14 +56,17 @@
           name-entries (into {} (for [name (flag-names flag)] [name flag-atom]))]
       ;; Check that a flag with this name isn't already registered.
       (when-let [conflicting-flag (some (:__flags this) (flag-names flag))]
-        (throw (Exception.
-                (str "Flag named \"" (string/join
-                                      "\" and \"" (flag-names flag)) "\""
-                     " defined in " (:namespace flag)
-                     " conflicts with flag named \""
-                     (string/join
-                      "\" and \"" (flag-names @conflicting-flag)) "\""
-                     " defined in " (:namespace @conflicting-flag)))))
+        (when (not (= (:namespace flag) (:namespace @conflicting-flag)))
+          (throw (Exception.
+                  (str
+                   "Flag named \""
+                   (string/join
+                    "\" and \"" (flag-names flag)) "\""
+                    " defined in " (:namespace flag)
+                    " conflicts with flag named \""
+                    (string/join
+                     "\" and \"" (flag-names @conflicting-flag)) "\""
+                     " defined in " (:namespace @conflicting-flag))))))
       (->FlagValues (merge (:__flags this) name-entries)
                     (update-in flags-by-ns [ns] conj flag-atom))))
   (update-flag-values [this optlist]
