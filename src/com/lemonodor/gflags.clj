@@ -1,11 +1,9 @@
 (ns com.lemonodor.gflags
   "Gflags for clojure."
-  (:require
-   [clojure.java.io :as io]
-   [clojure.pprint :as pprint]
-   [clojure.string :as string]
-   [com.lemonodor.getopt :as getopt]
-   [me.raynes.fs :as fs]))
+  (:require [clojure.java.io :as io]
+            [clojure.string :as string]
+            [com.lemonodor.getopt :as getopt]
+            [me.raynes.fs :as fs]))
 
 
 (defn set-flag-value [flag ^String optname value-string]
@@ -379,3 +377,15 @@
         [optlist, unparsed-args] (getopt/getopt args shortopts longopts)]
     (swap! *flags* update-flag-values optlist)
     unparsed-args))
+
+
+;; (defn help-parser [flag argument]
+;;   (println "USAGE"))
+
+;; (define
+;;   help-parser
+;;   "help"
+;;   false
+;;   "Show this help"
+;;   :short-name "?"
+;;   :boolean true)
