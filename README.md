@@ -61,7 +61,7 @@ Then in a CLI app namespace, you just need to call `parse-flags`:
   (:require [:com.lemonodor.gflags :as gflags])
   ...)
 
-(defn- main [& args]
+(defn -main [& args]
   (let [unparsed-args (gflags/parse-flags (into ["argv0"] args))]
     ...))
 ```
