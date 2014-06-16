@@ -85,3 +85,11 @@ current state).
 * Flag serialization.
 * Flag validators.
 * Flags of the following types: list, spaceseplist.
+
+## Contributing
+
+To run tests:
+
+```
+$ lein test
+```
