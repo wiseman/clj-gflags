@@ -11,7 +11,7 @@
                               (:boolean flag))
                        "1"
                        value-string)]
-    (when (zero? (count value-string))
+    (when (not value-string)
       (throw (Exception. (str "Must specify a value for flag " optname))))
     (let [value
           (try ((:parser flag) flag value-string)

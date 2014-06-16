@@ -84,7 +84,17 @@
         :short-name "f")
       (is (thrown-with-msg?
            Exception #"-f.*requires argument"
-           (gflags/parse-flags ["argv0" "-f"]))))))
+           (gflags/parse-flags ["argv0" "-f"])))))
+  (testing "string long name, empty value"
+    (binding [gflags/*flags* (gflags/make-flag-values)]
+      (gflags/define-string "filename"
+        "default-filename"
+        "The input filename"
+        :short-name "f")
+      (let [unparsed-args (gflags/parse-flags ["argv0" "--filename" ""])
+            flags (gflags/flags)]
+        (is (= unparsed-args []))
+        (is (= (flags :filename) ""))))))
 
 
 (deftest boolean-test
