@@ -23,7 +23,7 @@ define its own flags.
 ## Installation
 
 ```
-[com.lemonodor/gflags "0.5.0"]
+[com.lemonodor/gflags "0.6.0"]
 ```
 
 
