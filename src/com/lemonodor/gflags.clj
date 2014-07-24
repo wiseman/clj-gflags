@@ -250,10 +250,22 @@
          args))
 
 
+(defn help-parser [flag argument]
+  (doseq [[_ flag] (:__flags @*flags*)]
+    (println (:name @flag) (:help @flag))))
+
+
 (defn add-default-flags [flag-values]
   (binding [*flags* flag-values]
     (define-string "flagfile" nil
-      "Insert flag definitions from the given file into the command line.")))
+      "Insert flag definitions from the given file into the command line.")
+    (define
+      help-parser
+      "help"
+      false
+      "Show this help"
+      :short-name "?"
+      :boolean true)))
 
 
 (defn make-flag-values []
@@ -379,13 +391,3 @@
     unparsed-args))
 
 
-;; (defn help-parser [flag argument]
-;;   (println "USAGE"))
-
-;; (define
-;;   help-parser
-;;   "help"
-;;   false
-;;   "Show this help"
-;;   :short-name "?"
-;;   :boolean true)

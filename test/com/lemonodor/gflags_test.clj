@@ -436,6 +436,8 @@
                  :enable-unicorns
                  :flagfile
                  :foo
+                 :?
+                 :help
                  :num-cats
                  }))
         (is (= (gflags/flags :best-cat-name) "shrimp"))
@@ -444,3 +446,9 @@
         (is (gflags/flags :enable-dragons))
         (is (= (gflags/flags :foo) "bar"))
         (is (= (gflags/flags :num-cats) 8))))))
+
+(deftest help-test
+  (testing "usage with --help"
+    (binding [gflags/*flags* (gflags/make-flag-values)]
+      (let [args ["argv0" "--help"]]
+        (gflags/parse-flags args)))))
