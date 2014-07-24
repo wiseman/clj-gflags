@@ -23,7 +23,7 @@ define its own flags.
 ## Installation
 
 ```
-[com.lemonodor/gflags "0.5.0"]
+[com.lemonodor/gflags "0.7.0"]
 ```
 
 
@@ -61,7 +61,7 @@ Then in a CLI app namespace, you just need to call `parse-flags`:
   (:require [:com.lemonodor.gflags :as gflags])
   ...)
 
-(defn- main [& args]
+(defn -main [& args]
   (let [unparsed-args (gflags/parse-flags (into ["argv0"] args))]
     ...))
 ```
@@ -85,3 +85,11 @@ current state).
 * Flag serialization.
 * Flag validators.
 * Flags of the following types: list, spaceseplist.
+
+## Contributing
+
+To run tests:
+
+```
+$ lein test
+```
