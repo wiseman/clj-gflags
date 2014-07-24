@@ -44,6 +44,9 @@
   (filter identity [(:name flag) (:short-name flag)]))
 
 
+(def ^:dynamic *allow-flag-redefinition* false)
+
+
 (defrecord FlagValues [__flags __flags_by_ns]
   FlagValuesProtocol
   (register-flag [this flag ns]
@@ -54,7 +57,8 @@
           name-entries (into {} (for [name (flag-names flag)] [name flag-atom]))]
       ;; Check that a flag with this name isn't already registered.
       (when-let [conflicting-flag (some (:__flags this) (flag-names flag))]
-        (when (not (= (:namespace flag) (:namespace @conflicting-flag)))
+        (when (and (not *allow-flag-redefinition*)
+                   (not (= (:namespace flag) (:namespace @conflicting-flag))))
           (throw (Exception.
                   (str
                    "Flag named \""
