@@ -317,6 +317,39 @@
              (gflags/parse-flags args)))))))
 
 
+(deftest list-test
+  (testing "list, long name, three values"
+    (binding [gflags/*flags* (gflags/make-flag-values)]
+      (gflags/define-list "names"
+        []
+        "The names."
+        :short-name "n")
+      (let [args ["argv0" "--names=marlowe,petunia,amy" "arg1"]
+            unparsed-args (gflags/parse-flags args)]
+        (is (= ["arg1"] unparsed-args))
+        (is (= ["marlowe" "petunia" "amy"] (gflags/flags :names))))))
+  (testing "list, short name, three values"
+    (binding [gflags/*flags* (gflags/make-flag-values)]
+      (gflags/define-list "names"
+        []
+        "The names."
+        :short-name "n")
+      (let [args ["argv0" "-n" "marlowe,petunia,amy" "arg1"]
+            unparsed-args (gflags/parse-flags args)]
+        (is (= ["arg1"] unparsed-args))
+        (is (= (gflags/flags :names) ["marlowe" "petunia" "amy"])))))
+  (testing "list, long name, one value"
+    (binding [gflags/*flags* (gflags/make-flag-values)]
+      (gflags/define-list "names"
+        []
+        "The names."
+        :short-name "n")
+      (let [args ["argv0" "--names=marlowe" "arg1"]
+            unparsed-args (gflags/parse-flags args)]
+        (is (= ["arg1"] unparsed-args))
+        (is (= ["marlowe"] (gflags/flags :names)))))))
+
+
 (deftest multi-string-test
   (testing "multi-string, long name, one value"
     (binding [gflags/*flags* (gflags/make-flag-values)]
