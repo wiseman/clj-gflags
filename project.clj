@@ -1,4 +1,4 @@
-(defproject com.lemonodor/gflags "0.7.2"
+(defproject com.lemonodor/gflags "0.7.3-SNAPSHOT"
   :description "Google flags/gflags for clojure."
   :url "http://github.com/wiseman/clj-gflags/"
   :license {:name "MIT License"
