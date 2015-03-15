@@ -209,7 +209,7 @@
 
 
 (defn define-list
-  "Registers a glag whose value is a comma-separated list of strings."
+  "Registers a flag whose value is a comma-separated list of strings."
   [name default help & args]
   (apply define list-parser name default (or help "a comma-separated list of strings")
          args))

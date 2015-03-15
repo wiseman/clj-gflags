@@ -7,3 +7,7 @@
 --flagfile=dev-resources/include.flags
 --best-cat-name=petunia
 --dog-years-multiplier=6.9
+--dog-size=small
+--list=1,2,3,4
+--multi-string=1
+--multi-string=2

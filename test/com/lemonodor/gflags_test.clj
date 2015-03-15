@@ -481,14 +481,23 @@
       (gflags/define-string "foo"
         nil
         "Just a foo flag.")
+      (gflags/define-enum "dog-size"
+        "medium"
+        ["small" "medium" "big"]
+        "enum flag")
+      (gflags/define-list "list"
+        []
+        "list flag")
+      (gflags/define-multi-string "multi-string"
+        []
+        "multi-string flag")
       (let [args ["argv0"
                   "--flagfile"
                   (str (io/file (io/resource "test.flags")))
                   "arg1"]
             unparsed-args (gflags/parse-flags args)]
         (is (= unparsed-args ["arg1"]))
-        (is (= (set (keys (gflags/flags)))
-               #{
+        (is (= #{
                  :best-cat-name
                  :dog-years-multiplier
                  :enable-dragons
@@ -498,7 +507,11 @@
                  :?
                  :help
                  :num-cats
-                 }))
+                 :dog-size
+                 :list
+                 :multi-string
+                 }
+               (set (keys (gflags/flags)))))
         (is (= (gflags/flags :best-cat-name) "shrimp"))
         (is (= (gflags/flags :dog-years-multiplier) 6.9))
         (is (gflags/flags :enable-unicorns))

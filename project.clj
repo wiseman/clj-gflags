@@ -7,6 +7,6 @@
         :url "https://github.com/wiseman/clj-gflags"}
   :deploy-repositories {"releases" :clojars}
   :dependencies [[com.lemonodor/getopt "0.1.0"]
-                 [me.raynes/fs "1.4.5"]
+                 [me.raynes/fs "1.4.6"]
                  [org.clojure/clojure "1.5.1"]]
   :profiles {:dev {:plugins [[lein-cloverage "1.0.2"]]}})
