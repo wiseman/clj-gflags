@@ -1,6 +1,6 @@
 # clj-gflags
 
-[![Build Status](https://travis-ci.org/wiseman/clj-gflags.png?branch=master)](https://travis-ci.org/wiseman/clj-gflags) [![Coverage Status](https://coveralls.io/repos/wiseman/clj-gflags/badge.png?branch=master)](https://coveralls.io/r/wiseman/clj-gflags?branch=master)
+[![Build Status](https://travis-ci.org/wiseman/clj-gflags.png?branch=master)](https://travis-ci.org/wiseman/clj-gflags) [![Coverage Status](https://coveralls.io/repos/wiseman/clj-gflags/badge.svg?branch=master)](https://coveralls.io/r/wiseman/clj-gflags?branch=master)
 
 Google flags ("gflags") for Clojure. See
 https://code.google.com/p/python-gflags/ and
