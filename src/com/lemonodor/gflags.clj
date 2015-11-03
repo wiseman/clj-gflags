@@ -25,7 +25,7 @@
                        (str message ": " chained-message)
                        message)
                      e)))))]
-      (assoc flag :value value :present true))))
+      (assoc flag :value value :present? true))))
 
 
 (defprotocol FlagValuesProtocol
@@ -112,7 +112,7 @@
      help
      short-name
      boolean
-     present
+     present?
      namespace
      parser
      allow-override])
@@ -380,6 +380,13 @@
                  (conj new-argv current-arg)))))))
 
 
+(defn check-required-flags []
+  (doseq [[_ flag] (:__flags @*flags*)]
+    (let [f @flag]
+      (when (and (:required? f) (not (:present? f)))
+        (throw (Exception. (str "Flag " (:name f) " is required.")))))))
+
+
 (defn parse-flags
   "Parses command line flags.  Sets *flags* to be the flag values, and
    returns unparsed arguments.  Note that args should start with
@@ -403,4 +410,5 @@
         args (cook-boolean-args (all-flags @*flags*) args)
         [optlist, unparsed-args] (getopt/getopt args shortopts longopts)]
     (swap! *flags* update-flag-values optlist)
+    (check-required-flags)
     unparsed-args))

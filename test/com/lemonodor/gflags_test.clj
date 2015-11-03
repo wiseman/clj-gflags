@@ -524,3 +524,15 @@
     (binding [gflags/*flags* (gflags/make-flag-values)]
       (let [args ["argv0" "--help"]]
         (gflags/parse-flags args)))))
+
+(deftest required-flags
+  (testing "required flags"
+    (binding [gflags/*flags* (gflags/make-flag-values)]
+      (gflags/define-string "filename"
+        nil
+        "The input filename"
+        :short-name "f"
+        :required? true)
+      (is (thrown-with-msg?
+           Exception #"filename.*required"
+           (gflags/parse-flags ["arg0"]))))))
