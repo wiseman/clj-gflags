@@ -1,5 +1,5 @@
 (ns com.lemonodor.gflags
-  "Gflags for clojure."
+  "Google-style command-line flags for clojure."
   (:require [clojure.java.io :as io]
             [clojure.string :as string]
             [com.lemonodor.getopt :as getopt]
@@ -404,5 +404,3 @@
         [optlist, unparsed-args] (getopt/getopt args shortopts longopts)]
     (swap! *flags* update-flag-values optlist)
     unparsed-args))
-
-
