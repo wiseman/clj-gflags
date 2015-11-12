@@ -2,9 +2,7 @@
 
 [![Build Status](https://travis-ci.org/wiseman/clj-gflags.png?branch=master)](https://travis-ci.org/wiseman/clj-gflags) [![Coverage Status](https://coveralls.io/repos/wiseman/clj-gflags/badge.svg?branch=master)](https://coveralls.io/r/wiseman/clj-gflags?branch=master)
 
-Google flags ("gflags") for Clojure. See
-https://code.google.com/p/python-gflags/ and
-https://github.com/schuhschuh/gflags.
+Google flags ("gflags") for Clojure.  See https://github.com/gflags/python-gflags.
 
 The Google approach to command-line flags is that they are defined in
 the source file in which they are used.  This means that in a
@@ -23,7 +21,7 @@ define its own flags.
 ## Installation
 
 ```
-[com.lemonodor/gflags "0.7.1"]
+[com.lemonodor/gflags "0.7.3"]
 ```
 
 
@@ -73,18 +71,20 @@ current state).
 
 ### Supported
 
-* Long names, short names.
-* Flags of the following types: string, integer, float, boolean, enum, multi-string, multi-integer, multi-float.
+* Flag types: `define-string`, `define-boolean`, `define-integer`,
+  `define-float`, `define-enum`, `define-list`, `define-multi-string`,
+  `define-multi-integer`, `define-multi-float`.
+* Long names (`:name`) and  short names (`:short-name`).
+* Required flags (`:required? true`)
 * `--flagfile`
 * Errors if a flag with the same name is registered in two different namespaces.
-
 
 ## Not yet
 
 * `--help`, `--helpshort`, `--helpxml`, `--undefok`.
 * Flag serialization.
 * Flag validators.
-* Flags of the following types: list, spaceseplist.
+* "spaceseplist" flags.
 
 ## Contributing
 
