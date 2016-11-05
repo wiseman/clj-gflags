@@ -33,7 +33,7 @@ flags in that namespace for your AWS credentials etc.:
 ```
 (ns s3-utils
   "Utilties for accessing AWS S3."
-  (:require [:com.lemonodor.gflags :as gflags])
+  (:require [com.lemonodor.gflags :as gflags])
   ...)
 
 (gflags/define-string "aws-access-key"
