@@ -56,7 +56,7 @@ Then in a CLI app namespace, you just need to call `parse-flags`:
 ```
 (ns main-app
   "Command-line app"
-  (:require [:com.lemonodor.gflags :as gflags])
+  (:require [com.lemonodor.gflags :as gflags])
   ...)
 
 (defn -main [& args]
