@@ -1,6 +1,7 @@
 (ns com.lemonodor.gflags
   "Google-style command-line flags for clojure."
   (:require [clojure.java.io :as io]
+            [clojure.pprint :as pprint]
             [clojure.string :as string]
             [com.lemonodor.getopt :as getopt]
             [me.raynes.fs :as fs]))
@@ -266,14 +267,43 @@
 
 
 (defn help-parser [flag argument]
-  (doseq [[_ flag] (:__flags @*flags*)]
-    (println (:name @flag) (:help @flag))))
+  (let [flags (->> @*flags* :__flags (map second) (map deref) distinct (sort-by :name))
+        _ (println "WOO" flags)
+        max-flag-name-len (+ 2 (apply max (map #(-> % :name count) flags)))
+        name-width (min 30 max-flag-name-len)
+        desc-width (- 78 name-width)
+        wrapped-lines (fn [text]
+                        (string/split-lines
+                         (pprint/cl-format
+                          nil
+                          (str "~{~<~%~1," desc-width ":;~A~> ~}~%")
+                          (string/split text #" "))))]
+    (pprint/cl-format
+     true
+     (str "~" name-width "A ~A~%")
+     "Flag"
+     "Description")
+    (pprint/cl-format
+     true
+     (str "~" name-width "A ~A~%")
+     (apply str (repeat name-width "-"))
+     (apply str (repeat desc-width "-")))
+    (doseq [f flags]
+      (let [desc-lines (wrapped-lines (:help f))]
+        (pprint/cl-format
+         true
+         (str "~" name-width "A ~A~%")
+         (str "--" (:name f))
+         (first desc-lines))
+        (doseq [l (rest desc-lines)]
+          (println (apply str (repeat name-width " "))
+                   l))))))
 
 
 (defn add-default-flags [flag-values]
   (binding [*flags* flag-values]
     (define-string "flagfile" nil
-      "Insert flag definitions from the given file into the command line.")
+      "Insert flag definitions from the given file into the command line and make it really long.")
     (define
       help-parser
       "help"
